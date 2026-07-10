@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>智能健身推荐系统</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --primary:#FF6B35;--secondary:#4ECDC4;--accent:#FF6B6B;
+      --bg:#0F0F1A;--bg-card:#1A1A2E;--bg-card-hover:#222240;
+      --bg-input:#16213E;--text:#E8E8E8;--text-muted:#A0A0B8;--border:#2A2A4A;
+      --gradient-1:linear-gradient(135deg,#FF6B35,#FF8C42);
+      --gradient-2:linear-gradient(135deg,#4ECDC4,#44B09E);
+      --gradient-3:linear-gradient(135deg,#FF6B6B,#FF8E8E);
+      --radius:12px;--radius-sm:8px;--danger:#E74C3C
+    }
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+      background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6
+    }
+    .app{max-width:800px;margin:0 auto;padding:0 16px 40px}
+    .app-header{padding:28px 0 16px;text-align:center}
+    .app-header h1{font-size:28px;background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+    .subtitle{color:var(--text-muted);font-size:14px;letter-spacing:2px}
+    .tab-nav{display:flex;gap:6px;padding:4px;background:var(--bg-card);border-radius:var(--radius);margin-bottom:20px;overflow-x:auto}
+    .tab-btn{flex:1;min-width:70px;padding:10px 12px;border:none;background:transparent;color:var(--text-muted);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;transition:all .2s}
+    .tab-btn:hover{color:var(--text);background:rgba(255,107,53,.1)}
+    .tab-btn.active{background:var(--gradient-1);color:#fff;font-weight:600}
+    .main-content{min-height:60vh}
+    .section-title{font-size:22px;margin-bottom:16px}
+    .today-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+    .today-badge{display:flex;align-items:center;gap:12px}
+    .day-icon{font-size:40px}
+    .today-badge h2{font-size:22px}
+    .today-date{color:var(--text-muted);font-size:13px}
+    .btn{padding:10px 20px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-weight:600;transition:all .2s}
+    .btn-primary{background:var(--gradient-1);color:#fff}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,107,53,.3)}
+    .btn-secondary{background:var(--bg-card);color:var(--text);border:1px solid var(--border)}
+    .btn-secondary:hover{background:var(--bg-card-hover)}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-danger:hover{opacity:.9}
+    .btn-sm{padding:6px 14px;font-size:12px}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+    .stat-card{background:var(--bg-card);border-radius:var(--radius);padding:14px;text-align:center;border:1px solid var(--border);transition:all .2s}
+    .stat-card:hover{border-color:var(--primary);transform:translateY(-2px)}
+    .stat-icon{font-size:24px;margin-bottom:6px}
+    .stat-info{display:flex;flex-direction:column}
+    .stat-label{font-size:11px;color:var(--text-muted);margin-bottom:2px}
+    .stat-value{font-size:18px;font-weight:700}
+    .stat-value small{font-size:11px;color:var(--text-muted);font-weight:400}
+    .recommendations{background:linear-gradient(135deg,rgba(78,205,196,.1),rgba(78,205,196,.05));border:1px solid rgba(78,205,196,.2);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+    .recommendations h3{color:var(--secondary);font-size:15px;margin-bottom:8px}
+    .rec-item{font-size:13px;padding:4px 0;line-height:1.5}
+    .training-zones{margin-bottom:20px}
+    .training-zones h3{font-size:16px;margin-bottom:10px}
+    .zones-grid{display:flex;gap:10px;flex-wrap:wrap}
+    .zone-card{display:flex;align-items:center;gap:8px;padding:12px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:50px;transition:all .2s}
+    .zone-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,107,53,.15)}
+    .zone-emoji{font-size:22px}
+    .zone-name{font-size:14px;font-weight:600}
+    .exercises-section h3{font-size:16px;margin-bottom:10px}
+    .exercise-list{display:flex;flex-direction:column;gap:10px}
+    .exercise-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;transition:all .2s}
+    .exercise-card:hover{border-color:var(--primary);box-shadow:0 4px 24px rgba(0,0,0,.3)}
+    .exercise-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .exercise-name{font-size:15px;font-weight:600}
+    .exercise-sets{font-size:12px;color:var(--primary);background:rgba(255,107,53,.1);padding:2px 10px;border-radius:20px;font-weight:600}
+    .exercise-detail{display:flex;flex-direction:column;gap:4px}
+    .exercise-weight{font-size:12px;color:var(--text-muted)}
+    .exercise-tip{font-size:12px;color:var(--secondary)}
+    .rest-day-card{text-align:center;padding:40px 20px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)}
+    .rest-emoji{font-size:64px;display:block;margin-bottom:12px}
+    .rest-day-card h3{font-size:22px;margin-bottom:8px}
+    .rest-day-card>p{color:var(--text-muted);margin-bottom:20px}
+    .rest-tips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .rest-tip{background:var(--bg);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px}
+    .weekly-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+    .weekly-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all .2s}
+    .weekly-card.today{border-color:var(--primary);background:linear-gradient(135deg,rgba(255,107,53,.1),var(--bg-card))}
+    .weekly-card:hover{transform:translateY(-2px)}
+    .weekly-day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .weekly-day{font-size:16px;font-weight:700}
+    .today-tag{font-size:10px;background:var(--gradient-1);color:#fff;padding:2px 8px;border-radius:20px;font-weight:600}
+    .weekly-focus{font-size:12px;color:var(--secondary);margin-bottom:8px;font-weight:500}
+    .weekly-zones{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+    .weekly-zone-tag{font-size:11px;background:var(--bg);padding:2px 8px;border-radius:20px;color:var(--text-muted)}
+    .weekly-exercise-count{font-size:11px;color:var(--text-muted);margin-top:8px}
+    .principles-card{background:var(--bg-card);border-radius:var(--radius);padding:20px;border:1px solid var(--border)}
+    .principles-card h3{font-size:16px;margin-bottom:14px}
+    .principles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .principle{background:var(--bg);padding:14px;border-radius:var(--radius-sm)}
+    .principle strong{display:block;font-size:14px;color:var(--primary);margin-bottom:4px}
+    .principle p{font-size:12px;color:var(--text-muted);line-height:1.5}
+    .tracking-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+    .charts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:20px}
+    .chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+    .mini-chart{width:100%}
+    .mini-chart-label{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+    .trend{font-size:11px;font-weight:600}
+    .trend.up{color:#4ECDC4}.trend.down{color:#FF6B6B}
+    .line-chart-svg{width:100%;height:auto}
+    .comparison-section{margin-bottom:20px}
+    .comparison-section h3{font-size:16px;margin-bottom:12px}
+    .comparison-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+    .comparison-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+    .comparison-header{font-size:14px;font-weight:600;margin-bottom:12px}
+    .comparison-bars{display:flex;flex-direction:column;gap:10px}
+    .bar-item{display:flex;align-items:center;gap:10px}
+    .bar-label{font-size:12px;color:var(--text-muted);width:36px;flex-shrink:0}
+    .bar-track{flex:1;height:26px;background:var(--bg);border-radius:20px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:20px;display:flex;align-items:center;padding-left:10px;font-size:11px;font-weight:600;color:#fff;min-width:60px;transition:width .5s ease}
+    .bar-fill.left{background:var(--gradient-3)}.bar-fill.right{background:var(--gradient-2)}
+    .bar-diff{font-size:11px;color:var(--text-muted);text-align:right;padding-top:2px}
+    .history-table-section{margin-bottom:20px}
+    .history-table-section h3{font-size:16px;margin-bottom:10px}
+    .table-wrapper{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+    .history-table{width:100%;border-collapse:collapse;font-size:13px}
+    .history-table th{background:var(--bg-card);color:var(--text-muted);font-weight:600;padding:12px;text-align:center;white-space:nowrap;font-size:11px}
+    .history-table td{padding:10px 12px;text-align:center;border-top:1px solid var(--border);white-space:nowrap}
+    .history-table tbody tr:hover{background:rgba(255,107,53,.05)}
+    .library-grid{display:flex;flex-direction:column;gap:16px}
+    .library-zone{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+    .library-zone-title{font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+    .library-exercises{display:flex;flex-direction:column;gap:8px}
+    .library-exercise-card{background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px;transition:all .2s}
+    .library-exercise-card:hover{background:var(--bg-card-hover)}
+    .lib-ex-name{font-size:14px;font-weight:600;margin-bottom:4px}
+    .lib-ex-meta{display:flex;gap:12px;font-size:12px;color:var(--text-muted);margin-bottom:4px}
+    .lib-ex-tip{font-size:12px;color:var(--secondary)}
+    .app-footer{text-align:center;padding:24px 0;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border);margin-top:20px}
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+    .modal-content{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .modal-content h3{font-size:18px;margin-bottom:20px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .form-field{display:flex;flex-direction:column;gap:4px}
+    .form-field label{font-size:12px;color:var(--text-muted)}
+    .form-field input{background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-size:14px;transition:border-color .2s;width:100%}
+    .form-field input:focus{outline:none;border-color:var(--primary)}
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* 登录页样式 */
+    .login-container{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+    .login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 32px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    .login-card .logo{text-align:center;margin-bottom:32px}
+    .login-card .logo .icon{font-size:56px;display:block;margin-bottom:8px}
+    .login-card .logo h1{font-size:24px;background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .login-card .logo p{color:var(--text-muted);font-size:13px;margin-top:4px}
+    .login-form{display:flex;flex-direction:column;gap:14px}
+    .login-form .field label{display:block;font-size:13px;color:var(--text-muted);margin-bottom:6px;font-weight:500}
+    .login-form .field input{width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:var(--radius-sm);font-size:15px;transition:border-color .2s}
+    .login-form .field input:focus{outline:none;border-color:var(--primary)}
+    .login-form .btn-login{width:100%;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--gradient-1);color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:4px}
+    .login-form .btn-login:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,107,53,.3)}
+    .login-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted)}
+    .login-switch a{color:var(--primary);cursor:pointer;font-weight:600;text-decoration:none}
+    .login-switch a:hover{text-decoration:underline}
+    .login-error{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--danger);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;text-align:center}
+    .login-success{background:rgba(78,205,196,.1);border:1px solid rgba(78,205,196,.3);color:var(--secondary);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;text-align:center}
+
+    /* 用户栏 */
+    .user-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg-card);border-radius:var(--radius);margin-bottom:16px;border:1px solid var(--border)}
+    .user-bar .user-info{display:flex;align-items:center;gap:10px;font-size:14px}
+    .user-bar .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--gradient-1);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700}
+    .user-bar .user-name{font-weight:600}
+    .user-bar .logout-btn{padding:6px 14px;font-size:12px}
+
+    @media(max-width:600px){
+      .stats-row{grid-template-columns:repeat(2,1fr)}
+      .weekly-grid{grid-template-columns:1fr}
+      .charts-grid,.comparison-grid,.form-grid,.rest-tips,.principles-grid{grid-template-columns:1fr}
+      .tab-btn{font-size:11px;padding:8px 6px}
+      .app-header h1{font-size:22px}
+      .login-card{padding:28px 20px}
+    }
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-track{background:var(--bg)}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+  (function() {
+    // ===== 数据常量 =====
+    var TRAINING_ZONES = [
+      { id:'chest', name:'胸部', emoji:'💪' },
+      { id:'back', name:'背部', emoji:'🔙' },
+      { id:'shoulders', name:'肩部', emoji:'🦾' },
+      { id:'arms', name:'手臂', emoji:'💪' },
+      { id:'legs', name:'腿部', emoji:'🦵' },
+      { id:'core', name:'核心', emoji:'🎯' },
+      { id:'cardio', name:'有氧', emoji:'🏃' },
+      { id:'rest', name:'休息', emoji:'😴' },
+    ];
+
+    var EXERCISE_LIBRARY = {
+      chest:[
+        { name:'杠铃卧推', sets:'4组 x 8-12次', weight:'中等重量', tip:'肩胛骨收紧，控制离心' },
+        { name:'哑铃飞鸟', sets:'3组 x 12-15次', weight:'轻中重量', tip:'感受胸部拉伸与收缩' },
+        { name:'上斜哑铃推举', sets:'4组 x 8-12次', weight:'中等重量', tip:'针对上胸，斜板30-45度' },
+        { name:'绳索夹胸', sets:'3组 x 12-15次', weight:'轻重量', tip:'顶峰收缩1-2秒' },
+        { name:'双杠臂屈伸', sets:'3组 x 力竭', weight:'自重', tip:'身体前倾，感受下胸' },
+      ],
+      back:[
+        { name:'引体向上', sets:'4组 x 力竭', weight:'自重/负重', tip:'全程控制，避免借力' },
+        { name:'杠铃划船', sets:'4组 x 8-12次', weight:'中等重量', tip:'保持背部平直，肘部贴紧身体' },
+        { name:'高位下拉', sets:'4组 x 10-12次', weight:'中等重量', tip:'感受背阔肌收缩' },
+        { name:'坐姿划船', sets:'3组 x 10-12次', weight:'中等重量', tip:'顶峰收缩挤压背部' },
+        { name:'硬拉', sets:'3组 x 6-8次', weight:'大重量', tip:'保持脊柱中立，核心收紧' },
+      ],
+      shoulders:[
+        { name:'站姿杠铃推举', sets:'4组 x 8-10次', weight:'中等重量', tip:'核心收紧，避免过度后仰' },
+        { name:'哑铃侧平举', sets:'4组 x 12-15次', weight:'轻重量', tip:'沉肩，感受中束发力' },
+        { name:'面拉', sets:'3组 x 15-20次', weight:'轻重量', tip:'改善肩部健康，预防伤病' },
+        { name:'哑铃前平举', sets:'3组 x 12-15次', weight:'轻重量', tip:'交替进行，控制节奏' },
+        { name:'俯身飞鸟', sets:'3组 x 12-15次', weight:'轻重量', tip:'针对后束，避免耸肩' },
+      ],
+      arms:[
+        { name:'杠铃弯举', sets:'4组 x 10-12次', weight:'中等重量', tip:'控制离心，避免借力' },
+        { name:'窄距卧推', sets:'4组 x 8-12次', weight:'中等重量', tip:'肘部贴紧身体，刺激三头' },
+        { name:'锤式弯举', sets:'3组 x 12次', weight:'中等重量', tip:'针对肱肌和肱桡肌' },
+        { name:'绳索下压', sets:'3组 x 12-15次', weight:'轻中重量', tip:'顶峰收缩挤压三头' },
+        { name:'集中弯举', sets:'3组 x 12-15次', weight:'轻重量', tip:'孤立训练肱二头肌' },
+      ],
+      legs:[
+        { name:'杠铃深蹲', sets:'4组 x 8-10次', weight:'大重量', tip:'深度至少平行，膝盖不内扣' },
+        { name:'罗马尼亚硬拉', sets:'3组 x 10-12次', weight:'中等重量', tip:'感受腘绳肌拉伸' },
+        { name:'保加利亚分腿蹲', sets:'3组 x 10-12次/腿', weight:'中等重量', tip:'前腿发力为主，稳定核心' },
+        { name:'腿举', sets:'4组 x 10-12次', weight:'大重量', tip:'全幅动作，控制离心' },
+        { name:'小腿提踵', sets:'4组 x 15-20次', weight:'中等重量', tip:'顶峰停顿，充分拉伸' },
+      ],
+      core:[
+        { name:'平板支撑', sets:'3组 x 45-60秒', weight:'自重', tip:'保持身体一条直线' },
+        { name:'悬垂举腿', sets:'3组 x 12-15次', weight:'自重', tip:'控制节奏，避免摆动' },
+        { name:'俄罗斯转体', sets:'3组 x 20次/侧', weight:'自重/轻球', tip:'双脚离地增加难度' },
+        { name:'卷腹', sets:'3组 x 15-20次', weight:'自重', tip:'下巴微收，避免拉脖子' },
+        { name:'农夫行走', sets:'3组 x 30秒', weight:'大重量', tip:'核心抗旋转，保持稳定' },
+      ],
+      cardio:[
+        { name:'HIIT间歇跑', sets:'20分钟', weight:'—', tip:'冲刺30秒+慢走60秒循环' },
+        { name:'跳绳', sets:'15分钟', weight:'—', tip:'变化节奏，混合双摇和单摇' },
+        { name:'战绳', sets:'4组 x 30秒', weight:'—', tip:'全力输出，组间休息60秒' },
+        { name:'划船机', sets:'20分钟', weight:'—', tip:'保持稳定配速' },
+        { name:'动感单车', sets:'30分钟', weight:'—', tip:'间歇变速骑行' },
+      ],
+      rest:[
+        { name:'泡沫轴放松', sets:'15分钟', weight:'—', tip:'重点放松紧张肌群' },
+        { name:'静态拉伸', sets:'10-15分钟', weight:'—', tip:'每个动作保持30秒' },
+        { name:'瑜伽', sets:'30分钟', weight:'—', tip:'关注呼吸与身体感知' },
+        { name:'散步', sets:'30-45分钟', weight:'—', tip:'轻松节奏，促进恢复' },
+      ],
+    };
+
+    var DEFAULT_BODY_DATA = {
+      date: new Date().toISOString().split('T')[0],
+      weight:75, leftArm:35, rightArm:35.5,
+      leftLeg:55, rightLeg:55.5,
+      chest_cm:100, waist:82, hip:96,
+    };
+
+    // ===== 工具函数 =====
+    function el(tag, attrs, children) {
+      var e = document.createElement(tag);
+      if(attrs){
+        for(var k in attrs){
+          if(k === 'className') e.className = attrs[k];
+          else if(k === 'style' && typeof attrs[k] === 'object') Object.assign(e.style, attrs[k]);
+          else if(k === 'innerHTML') e.innerHTML = attrs[k];
+          else if(k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+          else e.setAttribute(k, attrs[k]);
+        }
+      }
+      if(children !== undefined && children !== null){
+        if(typeof children === 'string' || typeof children === 'number') e.textContent = children;
+        else if(Array.isArray(children)) children.forEach(function(c){ if(c) e.appendChild(typeof c==='string'?document.createTextNode(c):c); });
+        else if(children instanceof Node) e.appendChild(children);
+      }
+      return e;
+    }
+
+    function generateWeeklyPlan(bodyData){
+      var dayOfWeek = new Date().getDay();
+      var weeklySchedule = [
+        { day:'周一', zones:['chest','shoulders','arms'], focus:'推力训练日' },
+        { day:'周二', zones:['back','arms'], focus:'拉力训练日' },
+        { day:'周三', zones:['legs','core'], focus:'腿部训练日' },
+        { day:'周四', zones:['chest','back'], focus:'上下肢混合日' },
+        { day:'周五', zones:['shoulders','arms','core'], focus:'上肢+核心日' },
+        { day:'周六', zones:['legs','cardio'], focus:'腿部+有氧日' },
+        { day:'周日', zones:['rest'], focus:'休息恢复日' },
+      ];
+      var armAvg = (bodyData.leftArm + bodyData.rightArm) / 2;
+      var legAvg = (bodyData.leftLeg + bodyData.rightLeg) / 2;
+      var recommendations = [];
+      if(armAvg < 37) recommendations.push('💡 手臂围度偏小，建议增加手臂孤立训练频次');
+      if(legAvg < 56) recommendations.push('💡 腿部围度有提升空间，深蹲日可适当增加容量');
+      var idx = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      return { weeklySchedule:weeklySchedule, todaySchedule:weeklySchedule[idx], recommendations:recommendations, armAvg:armAvg, legAvg:legAvg };
+    }
+
+    function generateHistoryData(){
+      var data = [];
+      var baseData = Object.assign({}, DEFAULT_BODY_DATA);
+      var today = new Date();
+      for(var i = 90; i >= 0; i -= 7){
+        var d = new Date(today);
+        d.setDate(d.getDate() - i);
+        var week = Math.floor((90 - i) / 7);
+        data.push({
+          date: d.toISOString().split('T')[0],
+          weight: Math.round((baseData.weight - week * 0.3 + Math.random() * 0.5) * 10) / 10,
+          leftArm: Math.round((baseData.leftArm + week * 0.08 + Math.random() * 0.1) * 10) / 10,
+          rightArm: Math.round((baseData.rightArm + week * 0.08 + Math.random() * 0.1) * 10) / 10,
+          leftLeg: Math.round((baseData.leftLeg + week * 0.12 + Math.random() * 0.15) * 10) / 10,
+          rightLeg: Math.round((baseData.rightLeg + week * 0.12 + Math.random() * 0.15) * 10) / 10,
+        });
+      }
+      return data;
+    }
+
+    // ===== 用户数据管理 =====
+    var USERS_KEY = 'fitness_users';
+    var CURRENT_USER_KEY = 'fitness_current_user';
+
+    function getUsers(){
+      try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch(e) { return {}; }
+    }
+    function saveUsers(users){
+      try { localStorage.setItem(USERS_KEY, JSON.stringify(users)); } catch(e) {}
+    }
+    function getCurrentUser(){
+      try { return JSON.parse(localStorage.getItem(CURRENT_USER_KEY)); } catch(e) { return null; }
+    }
+    function setCurrentUser(username){
+      try { localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(username)); } catch(e) {}
+    }
+    function clearCurrentUser(){
+      try { localStorage.removeItem(CURRENT_USER_KEY); } catch(e) {}
+    }
+
+    // 获取当前用户的数据
+    function getUserData(){
+      var username = getCurrentUser();
+      if(!username) return null;
+      var users = getUsers();
+      var user = users[username];
+      if(!user) return null;
+      return {
+        username: username,
+        bodyData: user.bodyData || DEFAULT_BODY_DATA,
+        historyData: user.historyData || generateHistoryData()
+      };
+    }
+
+    function saveUserData(bodyData, historyData){
+      var username = getCurrentUser();
+      if(!username) return;
+      var users = getUsers();
+      users[username] = { bodyData: bodyData, historyData: historyData };
+      saveUsers(users);
+    }
+
+    // ===== SVG 折线图 =====
+    function createLineChart(data, label, color, unit){
+      unit = unit || 'cm';
+      var container = el('div', { className:'mini-chart' });
+      if(!data || data.length === 0) return container;
+
+      var values = data.map(function(d){ return d.value; });
+      var maxVal = Math.max.apply(null, values);
+      var minVal = Math.min.apply(null, values);
+      var range = maxVal - minVal || 1;
+      var height = 100, width = 280;
+      var pad = { top:10, bottom:20, left:10, right:10 };
+      var cw = width - pad.left - pad.right;
+      var ch = height - pad.top - pad.bottom;
+
+      var points = data.map(function(d,i){
+        var x = pad.left + (i / (data.length - 1)) * cw;
+        var y = pad.top + ch - ((d.value - minVal) / range) * ch;
+        return x + ',' + y;
+      }).join(' ');
+
+      var last = data[data.length - 1];
+      var first = data[0];
+      var diff = last.value - first.value;
+      var trendUp = diff >= 0;
+      var gradId = 'grad-' + label.replace(/\s/g,'') + '-' + Math.random().toString(36).slice(2,6);
+
+      var labelDiv = el('div', { className:'mini-chart-label' });
+      labelDiv.appendChild(el('span', null, label + ': ' + last.value + unit));
+      if(data.length >= 2){
+        labelDiv.appendChild(el('span', { className:'trend ' + (trendUp ? 'up' : 'down') },
+          (trendUp ? ' ↑' : ' ↓') + Math.abs(Math.round(diff * 10) / 10) + unit
+        ));
+      }
+      container.appendChild(labelDiv);
+
+      var svgNS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+      svg.setAttribute('class', 'line-chart-svg');
+
+      var defs = document.createElementNS(svgNS, 'defs');
+      var grad = document.createElementNS(svgNS, 'linearGradient');
+      grad.setAttribute('id', gradId);
+      grad.setAttribute('x1','0'); grad.setAttribute('y1','0');
+      grad.setAttribute('x2','0'); grad.setAttribute('y2','1');
+      var stop1 = document.createElementNS(svgNS, 'stop');
+      stop1.setAttribute('offset','0%'); stop1.setAttribute('stop-color',color); stop1.setAttribute('stop-opacity','0.3');
+      var stop2 = document.createElementNS(svgNS, 'stop');
+      stop2.setAttribute('offset','100%'); stop2.setAttribute('stop-color',color); stop2.setAttribute('stop-opacity','0.02');
+      grad.appendChild(stop1); grad.appendChild(stop2);
+      defs.appendChild(grad);
+      svg.appendChild(defs);
+
+      var poly = document.createElementNS(svgNS, 'polygon');
+      poly.setAttribute('points', pad.left+','+(pad.top+ch) + ' ' + points + ' ' + (pad.left+cw)+','+(pad.top+ch));
+      poly.setAttribute('fill', 'url(#' + gradId + ')');
+      svg.appendChild(poly);
+
+      var line = document.createElementNS(svgNS, 'polyline');
+      line.setAttribute('points', points);
+      line.setAttribute('fill','none'); line.setAttribute('stroke',color);
+      line.setAttribute('stroke-width','2'); line.setAttribute('stroke-linecap','round'); line.setAttribute('stroke-linejoin','round');
+      svg.appendChild(line);
+
+      data.forEach(function(d,i){
+        var cx = pad.left + (i / (data.length - 1)) * cw;
+        var cy = pad.top + ch - ((d.value - minVal) / range) * ch;
+        var circle = document.createElementNS(svgNS, 'circle');
+        circle.setAttribute('cx', cx); circle.setAttribute('cy', cy); circle.setAttribute('r','3');
+        circle.setAttribute('fill','white'); circle.setAttribute('stroke',color); circle.setAttribute('stroke-width','2');
+        svg.appendChild(circle);
+      });
+
+      container.appendChild(svg);
+      return container;
+    }
+
+    // ===== 弹窗表单 =====
+    function showBodyDataForm(bodyData, onSave){
+      var overlay = el('div', { className:'modal-overlay' });
+      var content = el('div', { className:'modal-content' });
+      overlay.appendChild(content);
+
+      var fields = [
+        { key:'weight', label:'体重 (kg)', min:30, max:200, step:0.1 },
+        { key:'leftArm', label:'左臂围 (cm)', min:20, max:60, step:0.1 },
+        { key:'rightArm', label:'右臂围 (cm)', min:20, max:60, step:0.1 },
+        { key:'leftLeg', label:'左腿围 (cm)', min:30, max:80, step:0.1 },
+        { key:'rightLeg', label:'右腿围 (cm)', min:30, max:80, step:0.1 },
+        { key:'chest_cm', label:'胸围 (cm)', min:60, max:150, step:0.1 },
+        { key:'waist', label:'腰围 (cm)', min:50, max:130, step:0.1 },
+        { key:'hip', label:'臀围 (cm)', min:60, max:140, step:0.1 },
+      ];
+
+      var formData = Object.assign({}, bodyData);
+      content.appendChild(el('h3', null, '📊 更新身体数据'));
+
+      var grid = el('div', { className:'form-grid' });
+      fields.forEach(function(f){
+        var field = el('div', { className:'form-field' });
+        field.appendChild(el('label', null, f.label));
+        var input = el('input', { type:'number', value:formData[f.key], min:f.min, max:f.max, step:f.step });
+        input.addEventListener('input', function(){ formData[f.key] = parseFloat(input.value) || 0; });
+        field.appendChild(input);
+        grid.appendChild(field);
+      });
+      content.appendChild(grid);
+
+      var actions = el('div', { className:'modal-actions' });
+      var cancelBtn = el('button', { className:'btn btn-secondary' }, '取消');
+      var saveBtn = el('button', { className:'btn btn-primary' }, '保存数据');
+      actions.appendChild(cancelBtn);
+      actions.appendChild(saveBtn);
+      content.appendChild(actions);
+
+      function close(){ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+      cancelBtn.addEventListener('click', close);
+      overlay.addEventListener('click', function(e){ if(e.target === overlay) close(); });
+      saveBtn.addEventListener('click', function(){ onSave(formData); close(); });
+
+      document.body.appendChild(overlay);
+    }
+
+    // ===== 登录页面 =====
+    function renderLoginPage(){
+      var root = document.getElementById('root');
+      root.innerHTML = '';
+      root.className = '';
+
+      var isRegister = false;
+      var errorMsg = '';
+      var successMsg = '';
+
+      function renderForm(){
+        root.innerHTML = '';
+        var container = el('div', { className:'login-container' });
+        var card = el('div', { className:'login-card' });
+
+        // Logo
+        var logo = el('div', { className:'logo' }, [
+          el('span', { className:'icon' }, '🏋️'),
+          el('h1', null, '智能健身推荐'),
+          el('p', null, '登录以保存你的训练数据')
+        ]);
+        card.appendChild(logo);
+
+        // 错误/成功提示
+        if(errorMsg) card.appendChild(el('div', { className:'login-error' }, errorMsg));
+        if(successMsg) card.appendChild(el('div', { className:'login-success' }, successMsg));
+
+        // 表单
+        var form = el('div', { className:'login-form' });
+
+        var usernameField = el('div', { className:'field' });
+        usernameField.appendChild(el('label', null, '用户名'));
+        var usernameInput = el('input', { type:'text', placeholder:'请输入用户名', autocomplete:'username' });
+        usernameField.appendChild(usernameInput);
+        form.appendChild(usernameField);
+
+        var passwordField = el('div', { className:'field' });
+        passwordField.appendChild(el('label', null, '密码'));
+        var passwordInput = el('input', { type:'password', placeholder:'请输入密码', autocomplete: isRegister ? 'new-password' : 'current-password' });
+        passwordField.appendChild(passwordInput);
+        form.appendChild(passwordField);
+
+        if(isRegister){
+          var confirmField = el('div', { className:'field' });
+          confirmField.appendChild(el('label', null, '确认密码'));
+          var confirmInput = el('input', { type:'password', placeholder:'请再次输入密码', autocomplete:'new-password' });
+          confirmField.appendChild(confirmInput);
+          form.appendChild(confirmField);
+        }
+
+        var submitBtn = el('button', { className:'btn-login' }, isRegister ? '注 册' : '登 录');
+        form.appendChild(submitBtn);
+        card.appendChild(form);
+
+        // 切换
+        var switchDiv = el('div', { className:'login-switch' });
+        if(isRegister){
+          switchDiv.innerHTML = '已有账号？<a id="switchLink">去登录</a>';
+        } else {
+          switchDiv.innerHTML = '没有账号？<a id="switchLink">立即注册</a>';
+        }
+        card.appendChild(switchDiv);
+        container.appendChild(card);
+        root.appendChild(container);
+
+        // 事件绑定
+        document.getElementById('switchLink').addEventListener('click', function(){
+          isRegister = !isRegister;
+          errorMsg = '';
+          successMsg = '';
+          renderForm();
+        });
+
+        submitBtn.addEventListener('click', function(){
+          var username = usernameInput.value.trim();
+          var password = passwordInput.value.trim();
+          errorMsg = '';
+          successMsg = '';
+
+          if(!username || !password){
+            errorMsg = '请输入用户名和密码';
+            renderForm();
+            return;
+          }
+          if(username.length < 2){
+            errorMsg = '用户名至少2个字符';
+            renderForm();
+            return;
+          }
+          if(password.length < 3){
+            errorMsg = '密码至少3个字符';
+            renderForm();
+            return;
+          }
+
+          var users = getUsers();
+
+          if(isRegister){
+            if(users[username]){
+              errorMsg = '用户名已存在，请换一个';
+              renderForm();
+              return;
+            }
+            var confirmPwd = confirmInput ? confirmInput.value.trim() : '';
+            if(password !== confirmPwd){
+              errorMsg = '两次密码不一致';
+              renderForm();
+              return;
+            }
+            // 注册新用户
+            users[username] = {
+              bodyData: Object.assign({}, DEFAULT_BODY_DATA, { date: new Date().toISOString().split('T')[0] }),
+              historyData: generateHistoryData()
+            };
+            saveUsers(users);
+            setCurrentUser(username);
+            successMsg = '注册成功，正在进入...';
+            renderForm();
+            setTimeout(function(){ renderMainApp(); }, 800);
+          } else {
+            // 登录
+            if(!users[username]){
+              errorMsg = '用户不存在，请先注册';
+              renderForm();
+              return;
+            }
+            if(users[username].password !== undefined && users[username].password !== password){
+              errorMsg = '密码错误';
+              renderForm();
+              return;
+            }
+            // 如果是老用户没有密码字段，或密码匹配，都允许登录
+            // 保存密码到用户数据
+            if(users[username].password === undefined){
+              users[username].password = password;
+              saveUsers(users);
+            }
+            setCurrentUser(username);
+            renderMainApp();
+          }
+        });
+
+        // Enter 键提交
+        var allInputs = [usernameInput, passwordInput];
+        if(isRegister) allInputs.push(confirmInput);
+        allInputs[allInputs.length - 1].addEventListener('keydown', function(e){
+          if(e.key === 'Enter') submitBtn.click();
+        });
+
+        // 自动聚焦
+        setTimeout(function(){ usernameInput.focus(); }, 100);
+      }
+
+      renderForm();
+    }
+
+    // ===== 主应用 =====
+    function renderMainApp(){
+      var userData = getUserData();
+      if(!userData){
+        renderLoginPage();
+        return;
+      }
+
+      var bodyData = userData.bodyData;
+      var historyData = userData.historyData;
+      var plan = generateWeeklyPlan(bodyData);
+      var today = new Date();
+      var todayStr = today.toLocaleDateString('zh-CN', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+      var isRest = plan.todaySchedule.zones[0] === 'rest';
+
+      var root = document.getElementById('root');
+      root.innerHTML = '';
+      root.className = 'app';
+
+      // Header
+      var header = el('header', { className:'app-header' }, [
+        el('h1', null, '🏋️ 智能健身推荐'),
+        el('p', { className:'subtitle' }, 'AI驱动 · 科学训练 · 数据追踪')
+      ]);
+
+      // 用户栏
+      var userBar = el('div', { className:'user-bar' });
+      var initial = userData.username.charAt(0).toUpperCase();
+      var userInfo = el('div', { className:'user-info' }, [
+        el('div', { className:'user-avatar' }, initial),
+        el('span', { className:'user-name' }, userData.username)
+      ]);
+      var logoutBtn = el('button', { className:'btn btn-danger btn-sm logout-btn' }, '退出登录');
+      logoutBtn.addEventListener('click', function(){
+        clearCurrentUser();
+        renderLoginPage();
+      });
+      userBar.appendChild(userInfo);
+      userBar.appendChild(logoutBtn);
+
+      // Tab Nav
+      var tabs = [
+        { id:'today', label:'今日训练', icon:'📋' },
+        { id:'weekly', label:'周计划', icon:'📅' },
+        { id:'tracking', label:'数据追踪', icon:'📈' },
+        { id:'library', label:'动作库', icon:'📚' },
+      ];
+      var tabNav = el('nav', { className:'tab-nav' });
+      var mainContent = el('main', { className:'main-content' });
+
+      var currentTab = 'today';
+
+      function switchTab(tabId){
+        currentTab = tabId;
+        tabNav.querySelectorAll('.tab-btn').forEach(function(b){
+          b.className = 'tab-btn' + (b.dataset.tab === tabId ? ' active' : '');
+        });
+        renderTabContent();
+      }
+
+      tabs.forEach(function(tab){
+        var btn = el('button', { className:'tab-btn' + (tab.id === 'today' ? ' active' : ''), 'data-tab':tab.id }, tab.icon + ' ' + tab.label);
+        btn.addEventListener('click', function(){ switchTab(tab.id); });
+        tabNav.appendChild(btn);
+      });
+
+      // 刷新数据的辅助函数
+      function refreshData(){
+        var ud = getUserData();
+        if(!ud) return;
+        bodyData = ud.bodyData;
+        historyData = ud.historyData;
+        plan = generateWeeklyPlan(bodyData);
+        isRest = plan.todaySchedule.zones[0] === 'rest';
+      }
+
+      function onUpdateData(newData){
+        var todayStr2 = new Date().toISOString().split('T')[0];
+        var updatedData = Object.assign({}, newData, { date: todayStr2 });
+        var h = [].concat(historyData);
+        h = h.filter(function(d){ return d.date !== todayStr2; });
+        h.push(updatedData);
+        h.sort(function(a,b){ return a.date.localeCompare(b.date); });
+        saveUserData(updatedData, h);
+        refreshData();
+        renderMainApp();
+      }
+
+      function renderTabContent(){
+        mainContent.innerHTML = '';
+        var section = el('section', { className:'fade-in' });
+        mainContent.appendChild(section);
+
+        if(currentTab === 'today'){
+          var th = el('div', { className:'today-header' });
+          var badge = el('div', { className:'today-badge' }, [
+            el('span', { className:'day-icon' }, isRest ? '🛌' : '🔥'),
+            el('div', null, [
+              el('h2', null, plan.todaySchedule.day + ' · ' + plan.todaySchedule.focus),
+              el('p', { className:'today-date' }, todayStr)
+            ])
+          ]);
+          var updateBtn = el('button', { className:'btn btn-primary' }, '✏️ 更新身体数据');
+          updateBtn.addEventListener('click', function(){ showBodyDataForm(bodyData, onUpdateData); });
+          th.appendChild(badge);
+          th.appendChild(updateBtn);
+          section.appendChild(th);
+
+          var stats = el('div', { className:'stats-row' });
+          [
+            { icon:'💪', label:'平均臂围', value:((bodyData.leftArm + bodyData.rightArm) / 2).toFixed(1), unit:'cm' },
+            { icon:'🦵', label:'平均腿围', value:((bodyData.leftLeg + bodyData.rightLeg) / 2).toFixed(1), unit:'cm' },
+            { icon:'⚖️', label:'体重', value:bodyData.weight, unit:'kg' },
+            { icon:'📐', label:'腰围', value:bodyData.waist, unit:'cm' },
+          ].forEach(function(s){
+            stats.appendChild(
+              el('div', { className:'stat-card' }, [
+                el('div', { className:'stat-icon' }, s.icon),
+                el('div', { className:'stat-info' }, [
+                  el('span', { className:'stat-label' }, s.label),
+                  el('span', { className:'stat-value', innerHTML: s.value + ' <small>' + s.unit + '</small>' })
+                ])
+              ])
+            );
+          });
+          section.appendChild(stats);
+
+          if(plan.recommendations.length > 0){
+            var rec = el('div', { className:'recommendations' });
+            rec.appendChild(el('h3', null, '🧠 AI 智能建议'));
+            plan.recommendations.forEach(function(r){ rec.appendChild(el('p', { className:'rec-item' }, r)); });
+            section.appendChild(rec);
+          }
+
+          var tz = el('div', { className:'training-zones' });
+          tz.appendChild(el('h3', null, '🎯 今日训练部位'));
+          var zg = el('div', { className:'zones-grid' });
+          plan.todaySchedule.zones.forEach(function(zid){
+            var zone = TRAINING_ZONES.find(function(z){ return z.id === zid; });
+            zg.appendChild(el('div', { className:'zone-card ' + zid }, [
+              el('span', { className:'zone-emoji' }, zone.emoji),
+              el('span', { className:'zone-name' }, zone.name)
+            ]));
+          });
+          tz.appendChild(zg);
+          section.appendChild(tz);
+
+          if(!isRest){
+            var exSec = el('div', { className:'exercises-section' });
+            exSec.appendChild(el('h3', null, '📋 今日推荐训练动作'));
+            var exList = el('div', { className:'exercise-list' });
+            plan.todaySchedule.zones.forEach(function(zid){
+              var exs = EXERCISE_LIBRARY[zid] || [];
+              exs.slice(0, 2).forEach(function(ex){
+                exList.appendChild(el('div', { className:'exercise-card' }, [
+                  el('div', { className:'exercise-header' }, [
+                    el('span', { className:'exercise-name' }, ex.name),
+                    el('span', { className:'exercise-sets' }, ex.sets)
+                  ]),
+                  el('div', { className:'exercise-detail' }, [
+                    el('span', { className:'exercise-weight' }, '🏋️ ' + ex.weight),
+                    el('span', { className:'exercise-tip' }, '💡 ' + ex.tip)
+                  ])
+                ]));
+              });
+            });
+            exSec.appendChild(exList);
+            section.appendChild(exSec);
+          } else {
+            section.appendChild(el('div', { className:'rest-day-card' }, [
+              el('span', { className:'rest-emoji' }, '😴'),
+              el('h3', null, '今天是休息日！'),
+              el('p', null, '充分的休息是肌肉生长的关键。可以做一些轻度拉伸或散步促进恢复。'),
+              el('div', { className:'rest-tips' }, [
+                el('div', { className:'rest-tip' }, '💧 多喝水，保持水分'),
+                el('div', { className:'rest-tip' }, '🥩 摄入充足蛋白质'),
+                el('div', { className:'rest-tip' }, '😴 保证8小时睡眠'),
+                el('div', { className:'rest-tip' }, '🧘 泡沫轴放松肌肉'),
+              ])
+            ]));
+          }
+        }
+
+        else if(currentTab === 'weekly'){
+          section.appendChild(el('h2', { className:'section-title' }, '📅 本周训练计划'));
+          var wg = el('div', { className:'weekly-grid' });
+          plan.weeklySchedule.forEach(function(day, index){
+            var dow = today.getDay();
+            var dayNum = index + 1;
+            var isToday = (dow === 0 ? 7 : dow) === dayNum;
+            var card = el('div', { className:'weekly-card' + (isToday ? ' today' : '') });
+            var dh = el('div', { className:'weekly-day-header' });
+            dh.appendChild(el('span', { className:'weekly-day' }, day.day));
+            if(isToday) dh.appendChild(el('span', { className:'today-tag' }, '今天'));
+            card.appendChild(dh);
+            card.appendChild(el('p', { className:'weekly-focus' }, day.focus));
+            var wz = el('div', { className:'weekly-zones' });
+            day.zones.forEach(function(zid){
+              var zone = TRAINING_ZONES.find(function(z){ return z.id === zid; });
+              wz.appendChild(el('span', { className:'weekly-zone-tag' }, zone.emoji + ' ' + zone.name));
+            });
+            card.appendChild(wz);
+            if(day.zones[0] !== 'rest'){
+              var cnt = day.zones.reduce(function(s,z){ return s + (EXERCISE_LIBRARY[z]||[]).length; }, 0);
+              card.appendChild(el('div', { className:'weekly-exercise-count' }, cnt + ' 个推荐动作'));
+            }
+            wg.appendChild(card);
+          });
+          section.appendChild(wg);
+
+          var pc = el('div', { className:'principles-card' });
+          pc.appendChild(el('h3', null, '📖 训练原则'));
+          var pg = el('div', { className:'principles-grid' });
+          [
+            { title:'渐进超负荷', desc:'每周逐步增加重量、次数或组数' },
+            { title:'分化训练', desc:'推拉腿分割，每个肌群充分休息48-72小时' },
+            { title:'复合动作为主', desc:'深蹲、卧推、硬拉等复合动作效率最高' },
+            { title:'营养支持', desc:'训练日保证每公斤体重1.6-2.2g蛋白质摄入' },
+          ].forEach(function(p){
+            pg.appendChild(el('div', { className:'principle' }, [
+              el('strong', null, p.title), el('p', null, p.desc)
+            ]));
+          });
+          pc.appendChild(pg);
+          section.appendChild(pc);
+        }
+
+        else if(currentTab === 'tracking'){
+          var th2 = el('div', { className:'tracking-header' });
+          th2.appendChild(el('h2', { className:'section-title' }, '📈 身体数据追踪'));
+          var uBtn = el('button', { className:'btn btn-primary' }, '✏️ 更新数据');
+          uBtn.addEventListener('click', function(){ showBodyDataForm(bodyData, onUpdateData); });
+          th2.appendChild(uBtn);
+          section.appendChild(th2);
+
+          var armChartData = historyData.map(function(d){ return { date:d.date, value:Math.round(((d.leftArm+d.rightArm)/2)*10)/10 }; });
+          var legChartData = historyData.map(function(d){ return { date:d.date, value:Math.round(((d.leftLeg+d.rightLeg)/2)*10)/10 }; });
+          var weightChartData = historyData.map(function(d){ return { date:d.date, value:d.weight }; });
+
+          var cg = el('div', { className:'charts-grid' });
+          [ { data:armChartData, label:'平均臂围', color:'#FF6B6B' },
+            { data:legChartData, label:'平均腿围', color:'#4ECDC4' },
+            { data:weightChartData, label:'体重', color:'#45B7D1', unit:'kg' } ].forEach(function(c){
+            var cc = el('div', { className:'chart-card' });
+            cc.appendChild(createLineChart(c.data, c.label, c.color, c.unit));
+            cg.appendChild(cc);
+          });
+          section.appendChild(cg);
+
+          // 左右对称对比
+          var cs = el('div', { className:'comparison-section' });
+          cs.appendChild(el('h3', null, '📏 左右对称性对比'));
+          var compGrid = el('div', { className:'comparison-grid' });
+
+          function createComparisonCard(title, leftVal, rightVal, maxVal, leftLabel, rightLabel){
+            var card = el('div', { className:'comparison-card' });
+            card.appendChild(el('div', { className:'comparison-header' }, title));
+            var bars = el('div', { className:'comparison-bars' });
+            [{ label:leftLabel, val:leftVal, cls:'left' }, { label:rightLabel, val:rightVal, cls:'right' }].forEach(function(b){
+              var bi = el('div', { className:'bar-item' });
+              bi.appendChild(el('span', { className:'bar-label' }, b.label));
+              var track = el('div', { className:'bar-track' });
+              track.appendChild(el('div', { className:'bar-fill ' + b.cls, style:{ width:(b.val/maxVal*100)+'%' } }, b.val + ' cm'));
+              bi.appendChild(track);
+              bars.appendChild(bi);
+            });
+            bars.appendChild(el('div', { className:'bar-diff' }, '差距: ' + Math.abs(leftVal - rightVal).toFixed(1) + ' cm'));
+            card.appendChild(bars);
+            return card;
+          }
+          compGrid.appendChild(createComparisonCard('💪 臂围对比', bodyData.leftArm, bodyData.rightArm, 45, '左臂', '右臂'));
+          compGrid.appendChild(createComparisonCard('🦵 腿围对比', bodyData.leftLeg, bodyData.rightLeg, 65, '左腿', '右腿'));
+          cs.appendChild(compGrid);
+          section.appendChild(cs);
+
+          // 历史表
+          var hts = el('div', { className:'history-table-section' });
+          hts.appendChild(el('h3', null, '📋 历史记录'));
+          var tw = el('div', { className:'table-wrapper' });
+          var table = el('table', { className:'history-table' });
+          var thead = el('thead', null, el('tr', null, [
+            el('th', null, '日期'), el('th', null, '体重'), el('th', null, '左臂围'),
+            el('th', null, '右臂围'), el('th', null, '左腿围'), el('th', null, '右腿围')
+          ]));
+          table.appendChild(thead);
+          var tbody = el('tbody');
+          [].concat(historyData).reverse().slice(0, 10).forEach(function(d){
+            tbody.appendChild(el('tr', null, [
+              el('td', null, d.date), el('td', null, d.weight + ' kg'),
+              el('td', null, d.leftArm + ' cm'), el('td', null, d.rightArm + ' cm'),
+              el('td', null, d.leftLeg + ' cm'), el('td', null, d.rightLeg + ' cm')
+            ]));
+          });
+          table.appendChild(tbody);
+          tw.appendChild(table);
+          hts.appendChild(tw);
+          section.appendChild(hts);
+        }
+
+        else if(currentTab === 'library'){
+          section.appendChild(el('h2', { className:'section-title' }, '📚 训练动作库'));
+          var lg = el('div', { className:'library-grid' });
+          Object.keys(EXERCISE_LIBRARY).forEach(function(zid){
+            var exercises = EXERCISE_LIBRARY[zid];
+            var zone = TRAINING_ZONES.find(function(z){ return z.id === zid; });
+            if(!zone) return;
+            var lz = el('div', { className:'library-zone' });
+            lz.appendChild(el('h3', { className:'library-zone-title' }, zone.emoji + ' ' + zone.name));
+            var lex = el('div', { className:'library-exercises' });
+            exercises.forEach(function(ex){
+              lex.appendChild(el('div', { className:'library-exercise-card' }, [
+                el('div', { className:'lib-ex-name' }, ex.name),
+                el('div', { className:'lib-ex-meta' }, [ el('span', null, ex.sets), el('span', null, ex.weight) ]),
+                el('div', { className:'lib-ex-tip' }, '💡 ' + ex.tip)
+              ]));
+            });
+            lz.appendChild(lex);
+            lg.appendChild(lz);
+          });
+          section.appendChild(lg);
+        }
+      }
+
+      renderTabContent();
+
+      root.appendChild(header);
+      root.appendChild(userBar);
+      root.appendChild(tabNav);
+      root.appendChild(mainContent);
+      root.appendChild(el('footer', { className:'app-footer' }, el('p', null, '🏋️ 智能健身推荐系统 · 坚持训练，遇见更好的自己！')));
+    }
+
+    // ===== 启动 =====
+    function init(){
+      var currentUser = getCurrentUser();
+      if(currentUser){
+        var users = getUsers();
+        if(users[currentUser]){
+          renderMainApp();
+          return;
+        }
+      }
+      renderLoginPage();
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+</body>
+</html>
